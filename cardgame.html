@@ -1,0 +1,222 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3種ミックスカードゲーム</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;padding:15px;
+  font-family:Meiryo,sans-serif;
+  background:#eef4fb;text-align:center;color:#243047
+}
+h1{font-size:clamp(25px,4vw,40px);margin:10px}
+.controls{margin:15px}
+button{
+  padding:13px 22px;margin:5px;
+  border:0;border-radius:12px;
+  font-size:19px;font-weight:bold;cursor:pointer
+}
+#newGame{background:#263d69;color:white}
+#showAll{background:#e7eaf0;color:#263d69}
+.columns{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:12px;max-width:1200px;margin:auto
+}
+.column{background:white;border-radius:16px;padding:10px}
+.heading{color:white;padding:12px;border-radius:10px;font-size:20px;font-weight:bold}
+.action .heading{background:#1976d2}
+.place .heading{background:#239447}
+.with .heading{background:#ed851c}
+.card{
+  width:100%;min-height:180px;margin-top:12px;
+  border:4px solid #bbb;border-radius:15px;
+  background:#263d69;color:white;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  cursor:pointer;padding:8px;
+}
+.action .card{border-color:#1976d2}
+.place .card{border-color:#239447}
+.with .card{border-color:#ed851c}
+.card .emoji{font-size:60px}
+.card .word{font-size:clamp(16px,2vw,24px);font-weight:bold}
+.card .jp{font-size:15px;margin-top:7px}
+.card.open{background:white;color:#243047}
+.card.open .word{font-size:clamp(16px,2vw,23px)}
+.card:disabled{cursor:default}
+#sentence{
+  background:white;border:3px solid #b9cbe5;
+  border-radius:15px;padding:20px;
+  margin:20px auto;max-width:1100px;
+  font-size:clamp(20px,3vw,34px);font-weight:bold;
+  min-height:85px
+}
+#message{font-size:18px;font-weight:bold;margin:12px}
+@media(max-width:600px){
+  .columns{gap:5px}
+  .column{padding:5px}
+  .heading{font-size:13px;padding:9px 2px}
+  .card{min-height:145px;margin-top:7px}
+  .card .emoji{font-size:40px}
+  .card .word{font-size:15px}
+  .card .jp{font-size:11px}
+  button{font-size:15px;padding:12px}
+}
+</style>
+</head>
+<body>
+
+<h1>🎴 3種ミックスカードゲーム</h1>
+<p>3枚のカードを開いて英文を完成させよう！</p>
+
+<div class="controls">
+<button id="newGame" onclick="newGame()">🔀 NEW GAME</button>
+<button id="showAll" onclick="showAll()">👀 すべて開く</button>
+</div>
+
+<div id="message">NEW GAMEを押してスタート！</div>
+
+<div class="columns">
+
+<div class="column action">
+<div class="heading">🔵 ACTION</div>
+<button class="card" id="card0" onclick="openCard(0)">
+<div class="emoji">❓</div>
+<div class="word">TAP!</div>
+<div class="jp">タップして開く</div>
+</button>
+</div>
+
+<div class="column place">
+<div class="heading">🟢 PLACE</div>
+<button class="card" id="card1" onclick="openCard(1)">
+<div class="emoji">❓</div>
+<div class="word">TAP!</div>
+<div class="jp">タップして開く</div>
+</button>
+</div>
+
+<div class="column with">
+<div class="heading">🟠 WITH WHOM</div>
+<button class="card" id="card2" onclick="openCard(2)">
+<div class="emoji">❓</div>
+<div class="word">TAP!</div>
+<div class="jp">タップして開く</div>
+</button>
+</div>
+
+</div>
+
+<div id="sentence">I'm going to ...</div>
+
+<script>
+const decks = [
+[
+["🎮","play video games","ゲームをする"],
+["🍕","eat pizza","ピザを食べる"],
+["💃","dance","ダンスをする"],
+["😴","sleep","寝る"],
+["📚","study English","英語を勉強する"],
+["⚽","play soccer","サッカーをする"],
+["🎬","watch a movie","映画を見る"],
+["📖","read a book","本を読む"],
+["🍳","cook","料理をする"],
+["🎤","sing","歌う"]
+],
+[
+["🌳","at the park","公園で"],
+["🛏️","in my room","自分の部屋で"],
+["🍽️","at a restaurant","レストランで"],
+["🌕","on the moon","月の上で"],
+["🏫","at school","学校で"],
+["🏖️","at the beach","海辺で"],
+["📚","at the library","図書館で"],
+["🦒","at the zoo","動物園で"],
+["🏔️","in the mountains","山で"],
+["🛍️","at a mall","ショッピングモールで"]
+],
+[
+["🧑‍🤝‍🧑","with my friend","友達と"],
+["👨‍👩‍👧","with my family","家族と"],
+["👽","with an alien","宇宙人と"],
+["🤖","with a robot","ロボットと"],
+["👫","with my friends","友達みんなと"],
+["👩‍🏫","with my teacher","先生と"],
+["🐶","with my pet","ペットと"],
+["🏀","with my team","チームのみんなと"],
+["❓","with a stranger","知らない人と"],
+["🙂","alone","一人で"]
+]
+];
+
+let selected=[];
+let opened=[false,false,false];
+
+function newGame(){
+ selected=decks.map(deck=>{
+   return deck[Math.floor(Math.random()*deck.length)];
+ });
+ opened=[false,false,false];
+
+ for(let i=0;i<3;i++){
+   const card=document.getElementById("card"+i);
+   card.classList.remove("open");
+   card.disabled=false;
+   card.innerHTML=
+    '<div class="emoji">❓</div>'+
+    '<div class="word">TAP!</div>'+
+    '<div class="jp">タップして開く</div>';
+ }
+ document.getElementById("sentence").textContent=
+   "I'm going to ...";
+ document.getElementById("message").textContent=
+   "好きなカードをタップして開こう！";
+}
+
+function openCard(i){
+ if(!selected.length){
+   document.getElementById("message").textContent=
+     "先にNEW GAMEを押してください。";
+   return;
+ }
+ if(opened[i])return;
+
+ opened[i]=true;
+ const data=selected[i];
+ const card=document.getElementById("card"+i);
+
+ card.classList.add("open");
+ card.innerHTML=
+   '<div class="emoji">'+data[0]+'</div>'+
+   '<div class="word">'+data[1]+'</div>'+
+   '<div class="jp">'+data[2]+'</div>';
+ card.disabled=true;
+
+ const count=opened.filter(Boolean).length;
+ document.getElementById("message").textContent=
+   count===3 ? "🎉 完成！英文を発表しよう！":
+   count+" / 3 枚オープン！あと"+(3-count)+"枚！";
+
+ if(count===3){
+   document.getElementById("sentence").textContent=
+    "I'm going to "+selected[0][1]+" "+
+    selected[1][1]+" "+selected[2][1]+".";
+ }
+}
+
+function showAll(){
+ if(!selected.length){
+   document.getElementById("message").textContent=
+     "先にNEW GAMEを押してください。";
+   return;
+ }
+ for(let i=0;i<3;i++)openCard(i);
+}
+
+newGame();
+</script>
+</body>
+</html>
